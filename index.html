@@ -1,0 +1,79 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Markdown Table Generator</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#0f0f23;color:#fff;min-height:100vh;display:flex;justify-content:center;padding:20px}
+.ob{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:1000;display:flex;justify-content:center;align-items:center}.ob.hide{display:none}
+.oc{background:#1a1a3e;border-radius:20px;padding:40px;max-width:500px;width:90%;text-align:center;margin:0 auto}
+.oc h2{color:#00cec9;font-size:28px;margin-bottom:8px}.oc .sub{color:#888;font-size:14px}
+.stps{margin:25px 0;text-align:left;display:flex;flex-direction:column;gap:18px}
+.st{display:flex;gap:14px;align-items:flex-start}.st .n{width:32px;height:32px;border-radius:50%;background:#00cec9;color:#000;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.st h4{font-size:14px;margin-bottom:2px}.st p{font-size:12px;color:#888;line-height:1.5}
+.oc button{padding:14px 40px;border:none;border-radius:10px;background:#00cec9;color:#000;font-size:16px;font-weight:700;cursor:pointer}
+.oc .sk{color:#555;font-size:12px;cursor:pointer;margin-top:12px;display:inline-block}
+.app{display:none;max-width:800px;width:100%}.app.show{display:block}
+h1{text-align:center;margin-bottom:5px}h1 span{background:linear-gradient(90deg,#00cec9,#00b894);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub2{text-align:center;color:#666;margin-bottom:15px;font-size:14px}
+.controls{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;justify-content:center}
+.controls button{padding:8px 14px;border:1px solid #333;border-radius:8px;background:#1a1a3e;color:#fff;cursor:pointer;font-size:13px}
+.controls button:hover{border-color:#00cec9}
+.editor-wrap{overflow-x:auto;margin-bottom:15px}
+table.edit-table{border-collapse:collapse;width:100%}
+table.edit-table th,table.edit-table td{border:1px solid #333;padding:0}
+table.edit-table th{background:#16213e}
+table.edit-table input{width:100%;padding:10px;border:none;background:transparent;color:#fff;font-size:13px;font-family:inherit}
+table.edit-table input:focus{outline:none;background:#0f0f23}
+table.edit-table .del-btn{padding:4px 8px;border:none;background:transparent;color:#444;cursor:pointer;font-size:14px}
+table.edit-table .del-btn:hover{color:#ff6b6b}
+.output{background:#1a1a3e;border-radius:14px;padding:20px;margin-bottom:15px}
+.output .label{font-size:12px;color:#666;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.output .label button{padding:4px 10px;border:1px solid #00cec9;border-radius:4px;background:transparent;color:#00cec9;cursor:pointer;font-size:11px}
+.output pre{font-family:monospace;font-size:13px;color:#a855f7;line-height:1.6;white-space:pre-wrap;overflow-x:auto}
+.preview{background:#1a1a3e;border-radius:14px;padding:20px;margin-bottom:15px}
+.preview .label{font-size:12px;color:#666;margin-bottom:8px}
+.preview table{border-collapse:collapse;width:100%}
+.preview th,.preview td{border:1px solid #333;padding:8px 12px;text-align:left;font-size:13px}
+.preview th{background:#16213e;color:#00cec9}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#00cec9;color:#000;padding:12px 24px;border-radius:10px;font-weight:600;opacity:0;transition:.3s}.toast.show{opacity:1}
+</style></head><body>
+<div class="ob" id="ob"><div class="oc">
+<h2>Markdown Table Generator</h2><p class="sub">Create markdown tables visually</p>
+<div class="stps">
+<div class="st"><div class="n">1</div><div><h4>Edit the Table</h4><p>Click any cell to edit its content. Use the + Row / + Column buttons to add more.</p></div></div>
+<div class="st"><div class="n">2</div><div><h4>See the Markdown</h4><p>The markdown syntax updates automatically below. Copy it with one click.</p></div></div>
+<div class="st"><div class="n">3</div><div><h4>Preview the Result</h4><p>See how the table looks when rendered as HTML. Paste markdown anywhere!</p></div></div>
+</div>
+<button onclick="start()">Open Generator</button>
+<div class="sk" onclick="start()">Skip</div>
+</div></div>
+<div class="app" id="app">
+<h1><span>Markdown Table Generator</span></h1><p class="sub2">Edit cells, get markdown code instantly</p>
+<div class="controls"><button onclick="addRow()">+ Row</button><button onclick="addCol()">+ Column</button><button onclick="delRow()">- Row</button><button onclick="delCol()">- Column</button><button onclick="reset()">Reset</button></div>
+<div class="editor-wrap"><table class="edit-table" id="editTable"></table></div>
+<div class="output"><div class="label">MARKDOWN OUTPUT<button onclick="copyMD()">Copy Markdown</button></div><pre id="mdOutput"></pre></div>
+<div class="preview"><div class="label">PREVIEW</div><div id="preview"></div></div></div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+var data=[['Name','Age','City'],['John','25','Jakarta'],['Jane','30','Bandung'],['Bob','28','Surabaya']];
+function start(){document.getElementById('ob').classList.add('hide');document.getElementById('app').classList.add('show');localStorage.setItem('mtg_seen','1');render()}
+if(localStorage.getItem('mtg_seen')){document.getElementById('ob').classList.add('hide');document.getElementById('app').classList.add('show')}
+function render(){
+var html='<tr>';data[0].forEach(function(c,j){html+='<th><input value="'+c+'" oninput="data[0]['+j+']=this.value;genOutput()"></th>'});html+='<th></th></tr>';
+for(var i=1;i<data.length;i++){html+='<tr>';data[i].forEach(function(c,j){html+='<td><input value="'+c+'" oninput="data['+i+']['+j+']=this.value;genOutput()"></td>'});
+html+='<td><button class="del-btn" onclick="delRowIdx('+i+')">&times;</button></td></tr>'}
+document.getElementById('editTable').innerHTML=html;genOutput()}
+function genOutput(){
+var widths=data[0].map(function(h,j){var max=h.length;data.forEach(function(r){if(r[j]&&r[j].length>max)max=r[j].length});return max});
+var md='| '+data[0].map(function(h,j){return h.padEnd(widths[j])}).join(' | ')+' |\\n';
+md+='| '+widths.map(function(w){return'-'.repeat(w)}).join(' | ')+' |\\n';
+for(var i=1;i<data.length;i++){md+='| '+data[i].map(function(c,j){return(c||'').padEnd(widths[j])}).join(' | ')+' |\\n'}
+document.getElementById('mdOutput').textContent=md;
+var pv='<table><tr>'+data[0].map(function(h){return '<th>'+h+'</th>'}).join('')+'</tr>';
+for(var i=1;i<data.length;i++){pv+='<tr>'+data[i].map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'}
+pv+='</table>';document.getElementById('preview').innerHTML=pv}
+function addRow(){data.push(data[0].map(function(){return ''}));render()}
+function addCol(){data.forEach(function(r){r.push('')});render()}
+function delRow(){if(data.length>2)data.pop();render()}
+function delCol(){if(data[0].length>1)data.forEach(function(r){r.pop()});render()}
+function delRowIdx(i){if(data.length>2)data.splice(i,1);render()}
+function reset(){data=[['Name','Age','City'],['John','25','Jakarta'],['Jane','30','Bandung']];render()}
+function copyMD(){navigator.clipboard.writeText(document.getElementById('mdOutput').textContent);var t=document.getElementById('toast');t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1500)}
+render();
+</script></body></html>
